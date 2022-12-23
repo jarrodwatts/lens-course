@@ -1,0 +1,31 @@
+.headerContainer {
+  height: 64px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: darkslategray;
+  border-bottom: 1px solid white;
+  z-index: 99999;
+}
+
+.logo {
+  height: 48px;
+  width: 48px;
+  margin-left: 16px;
+}
+
+.left {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+}
+
+.right {
+  margin-right: 16px;
+}
