@@ -7,13 +7,13 @@ import Header from "../components/Header";
 export default function App({ Component, pageProps }: AppProps) {
   // the chainId our app wants to be running on
   // for our example the Polygon Mumbai Testnet
-  const desiredChainId = ChainId.Polygon;
+  const desiredChainId = ChainId.Mumbai;
 
   // Create a client
   const queryClient = new QueryClient();
 
   return (
-    <ThirdwebProvider desiredChainId={desiredChainId}>
+    <ThirdwebProvider activeChain="mumbai">
       <QueryClientProvider client={queryClient}>
         <Header />
         <Component {...pageProps} />
