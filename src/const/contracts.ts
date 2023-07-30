@@ -1,23 +1,29 @@
-// 1. export the contract address
 export const LENS_CONTRACT_ADDRESS =
-  "0xDb46d1Dc155634FbC732f92E853b10B288AD5a1d";
+  "0x60Ae865ee4C725cd04353b5AAb364553f56ceF82";
 
-// 2. export the contract abi
 export const LENS_CONTRACT_ABI = [
   {
     inputs: [
       { internalType: "address", name: "followNFTImpl", type: "address" },
       { internalType: "address", name: "collectNFTImpl", type: "address" },
+      {
+        internalType: "uint256",
+        name: "tokenGuardianCooldown",
+        type: "uint256",
+      },
     ],
     stateMutability: "nonpayable",
     type: "constructor",
   },
+  { inputs: [], name: "AlreadyEnabled", type: "error" },
   { inputs: [], name: "CallerNotCollectNFT", type: "error" },
   { inputs: [], name: "CallerNotFollowNFT", type: "error" },
-  { inputs: [], name: "CannotInitImplementation", type: "error" },
+  { inputs: [], name: "DisablingAlreadyTriggered", type: "error" },
+  { inputs: [], name: "DispatcherNotSet", type: "error" },
   { inputs: [], name: "EmergencyAdminCannotUnpause", type: "error" },
+  { inputs: [], name: "GuardianEnabled", type: "error" },
   { inputs: [], name: "InitParamsInvalid", type: "error" },
-  { inputs: [], name: "Initialized", type: "error" },
+  { inputs: [], name: "NotEOA", type: "error" },
   { inputs: [], name: "NotGovernance", type: "error" },
   { inputs: [], name: "NotGovernanceOrEmergencyAdmin", type: "error" },
   { inputs: [], name: "NotOwnerOrApproved", type: "error" },
@@ -30,7 +36,6 @@ export const LENS_CONTRACT_ABI = [
   { inputs: [], name: "PublishingPaused", type: "error" },
   { inputs: [], name: "SignatureExpired", type: "error" },
   { inputs: [], name: "SignatureInvalid", type: "error" },
-  { inputs: [], name: "ZeroSpender", type: "error" },
   {
     anonymous: false,
     inputs: [
@@ -92,6 +97,13 @@ export const LENS_CONTRACT_ABI = [
     type: "event",
   },
   {
+    inputs: [],
+    name: "DANGER__disableTokenGuardian",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [
       { internalType: "address", name: "to", type: "address" },
       { internalType: "uint256", name: "tokenId", type: "uint256" },
@@ -117,7 +129,7 @@ export const LENS_CONTRACT_ABI = [
   },
   {
     inputs: [
-      { internalType: "uint256", name: "tokenId", type: "uint256" },
+      { internalType: "uint256", name: "", type: "uint256" },
       {
         components: [
           { internalType: "uint8", name: "v", type: "uint8" },
@@ -126,13 +138,13 @@ export const LENS_CONTRACT_ABI = [
           { internalType: "uint256", name: "deadline", type: "uint256" },
         ],
         internalType: "struct DataTypes.EIP712Signature",
-        name: "sig",
+        name: "",
         type: "tuple",
       },
     ],
     name: "burnWithSig",
     outputs: [],
-    stateMutability: "nonpayable",
+    stateMutability: "pure",
     type: "function",
   },
   {
@@ -263,6 +275,53 @@ export const LENS_CONTRACT_ABI = [
     inputs: [
       {
         components: [
+          { internalType: "uint256", name: "profileId", type: "uint256" },
+          { internalType: "string", name: "contentURI", type: "string" },
+          {
+            internalType: "uint256",
+            name: "profileIdPointed",
+            type: "uint256",
+          },
+          { internalType: "uint256", name: "pubIdPointed", type: "uint256" },
+          { internalType: "bytes", name: "referenceModuleData", type: "bytes" },
+          { internalType: "address", name: "collectModule", type: "address" },
+          {
+            internalType: "bytes",
+            name: "collectModuleInitData",
+            type: "bytes",
+          },
+          { internalType: "address", name: "referenceModule", type: "address" },
+          {
+            internalType: "bytes",
+            name: "referenceModuleInitData",
+            type: "bytes",
+          },
+          {
+            components: [
+              { internalType: "uint8", name: "v", type: "uint8" },
+              { internalType: "bytes32", name: "r", type: "bytes32" },
+              { internalType: "bytes32", name: "s", type: "bytes32" },
+              { internalType: "uint256", name: "deadline", type: "uint256" },
+            ],
+            internalType: "struct DataTypes.EIP712Signature",
+            name: "sig",
+            type: "tuple",
+          },
+        ],
+        internalType: "struct DataTypes.CommentWithSigData",
+        name: "vars",
+        type: "tuple",
+      },
+    ],
+    name: "commentWithSig_Dispatcher",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        components: [
           { internalType: "address", name: "to", type: "address" },
           { internalType: "string", name: "handle", type: "string" },
           { internalType: "string", name: "imageURI", type: "string" },
@@ -312,6 +371,13 @@ export const LENS_CONTRACT_ABI = [
       { internalType: "address", name: "to", type: "address" },
     ],
     name: "emitFollowNFTTransferEvent",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "enableTokenGuardian",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -570,14 +636,10 @@ export const LENS_CONTRACT_ABI = [
     type: "function",
   },
   {
-    inputs: [
-      { internalType: "string", name: "name", type: "string" },
-      { internalType: "string", name: "symbol", type: "string" },
-      { internalType: "address", name: "newGovernance", type: "address" },
-    ],
-    name: "initialize",
-    outputs: [],
-    stateMutability: "nonpayable",
+    inputs: [{ internalType: "address", name: "wallet", type: "address" }],
+    name: "getTokenGuardianDisablingTimestamp",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -703,6 +765,46 @@ export const LENS_CONTRACT_ABI = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        components: [
+          { internalType: "uint256", name: "profileId", type: "uint256" },
+          {
+            internalType: "uint256",
+            name: "profileIdPointed",
+            type: "uint256",
+          },
+          { internalType: "uint256", name: "pubIdPointed", type: "uint256" },
+          { internalType: "bytes", name: "referenceModuleData", type: "bytes" },
+          { internalType: "address", name: "referenceModule", type: "address" },
+          {
+            internalType: "bytes",
+            name: "referenceModuleInitData",
+            type: "bytes",
+          },
+          {
+            components: [
+              { internalType: "uint8", name: "v", type: "uint8" },
+              { internalType: "bytes32", name: "r", type: "bytes32" },
+              { internalType: "bytes32", name: "s", type: "bytes32" },
+              { internalType: "uint256", name: "deadline", type: "uint256" },
+            ],
+            internalType: "struct DataTypes.EIP712Signature",
+            name: "sig",
+            type: "tuple",
+          },
+        ],
+        internalType: "struct DataTypes.MirrorWithSigData",
+        name: "vars",
+        type: "tuple",
+      },
+    ],
+    name: "mirrorWithSig_Dispatcher",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "name",
     outputs: [{ internalType: "string", name: "", type: "string" }],
@@ -718,8 +820,8 @@ export const LENS_CONTRACT_ABI = [
   },
   {
     inputs: [
-      { internalType: "address", name: "spender", type: "address" },
-      { internalType: "uint256", name: "tokenId", type: "uint256" },
+      { internalType: "address", name: "", type: "address" },
+      { internalType: "uint256", name: "", type: "uint256" },
       {
         components: [
           { internalType: "uint8", name: "v", type: "uint8" },
@@ -728,7 +830,7 @@ export const LENS_CONTRACT_ABI = [
           { internalType: "uint256", name: "deadline", type: "uint256" },
         ],
         internalType: "struct DataTypes.EIP712Signature",
-        name: "sig",
+        name: "",
         type: "tuple",
       },
     ],
@@ -739,9 +841,9 @@ export const LENS_CONTRACT_ABI = [
   },
   {
     inputs: [
-      { internalType: "address", name: "owner", type: "address" },
-      { internalType: "address", name: "operator", type: "address" },
-      { internalType: "bool", name: "approved", type: "bool" },
+      { internalType: "address", name: "", type: "address" },
+      { internalType: "address", name: "", type: "address" },
+      { internalType: "bool", name: "", type: "bool" },
       {
         components: [
           { internalType: "uint8", name: "v", type: "uint8" },
@@ -750,13 +852,13 @@ export const LENS_CONTRACT_ABI = [
           { internalType: "uint256", name: "deadline", type: "uint256" },
         ],
         internalType: "struct DataTypes.EIP712Signature",
-        name: "sig",
+        name: "",
         type: "tuple",
       },
     ],
     name: "permitForAll",
     outputs: [],
-    stateMutability: "nonpayable",
+    stateMutability: "pure",
     type: "function",
   },
   {
@@ -824,6 +926,46 @@ export const LENS_CONTRACT_ABI = [
       },
     ],
     name: "postWithSig",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        components: [
+          { internalType: "uint256", name: "profileId", type: "uint256" },
+          { internalType: "string", name: "contentURI", type: "string" },
+          { internalType: "address", name: "collectModule", type: "address" },
+          {
+            internalType: "bytes",
+            name: "collectModuleInitData",
+            type: "bytes",
+          },
+          { internalType: "address", name: "referenceModule", type: "address" },
+          {
+            internalType: "bytes",
+            name: "referenceModuleInitData",
+            type: "bytes",
+          },
+          {
+            components: [
+              { internalType: "uint8", name: "v", type: "uint8" },
+              { internalType: "bytes32", name: "r", type: "bytes32" },
+              { internalType: "bytes32", name: "s", type: "bytes32" },
+              { internalType: "uint256", name: "deadline", type: "uint256" },
+            ],
+            internalType: "struct DataTypes.EIP712Signature",
+            name: "sig",
+            type: "tuple",
+          },
+        ],
+        internalType: "struct DataTypes.PostWithSigData",
+        name: "vars",
+        type: "tuple",
+      },
+    ],
+    name: "postWithSig_Dispatcher",
     outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
     stateMutability: "nonpayable",
     type: "function",

@@ -109,7 +109,7 @@ export function useCreatePost() {
       referenceModuleInitData,
     } = typedData.createPostTypedData.typedData.value;
 
-    const result = await lensHubContract.call("postWithSig", {
+    const result = await lensHubContract.call("postWithSig", [{
       profileId: profileId,
       contentURI: contentURI,
       collectModule,
@@ -122,7 +122,7 @@ export function useCreatePost() {
         s,
         deadline: deadline,
       },
-    });
+    }]);
 
     console.log(result);
   }
